@@ -1,3 +1,2 @@
 # ELP_golang
-Le projet grotesque
-test
+Le projet grotesques

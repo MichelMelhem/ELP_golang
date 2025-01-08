@@ -42,11 +42,17 @@ func Dijkstra(g *models.Graph, source int) map[int]int {
 
 func runDijkstraExample() {
 	graph := models.NewGraph()
+
+	graph.AddNode(1)
+	graph.AddNode(2)
+	graph.AddNode(3)
+	graph.AddNode(4)
+
 	graph.AddEdge(1, 2, 4)
 	graph.AddEdge(1, 3, 2)
 	graph.AddEdge(2, 3, 5)
-	graph.AddEdge(2, 4, 10)
 	graph.AddEdge(3, 4, 3)
+	graph.AddEdge(2, 4, 10)
 
 	source := 1
 	distances := Dijkstra(graph, source)

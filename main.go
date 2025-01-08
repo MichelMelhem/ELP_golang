@@ -5,10 +5,13 @@ import (
 	"elp/models"
 	"fmt"
 	"math"
+	"sync"
 )
 
 // Dijkstra calculates shortest paths from a source node
-func Dijkstra(g *models.Graph, source int) map[int]int {
+func Dijkstra(g *models.Graph, source int, results chan<- map[int]int, wg *sync.WaitGroup) {
+	defer wg.Done() // Signal when done
+
 	distances := make(map[int]int)
 	for node := range g.AdjacencyList {
 		distances[node] = math.MaxInt32
@@ -37,7 +40,8 @@ func Dijkstra(g *models.Graph, source int) map[int]int {
 		}
 	}
 
-	return distances
+	// Send the results through the channel
+	results <- distances
 }
 
 func runDijkstraExample() {
@@ -49,12 +53,25 @@ func runDijkstraExample() {
 	graph.AddEdge(3, 4, 3)
 
 	source := 1
-	distances := Dijkstra(graph, source)
 
-	fmt.Printf("Shortest distances from node %d:\n", source)
-	for node, distance := range distances {
-		fmt.Printf("Node %d: %d\n", node, distance)
+	results := make(chan map[int]int)
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go Dijkstra(graph, source, results, &wg)
+
+	// Récupère le résuktat
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Print the results
+	for result := range results {
+		fmt.Println("Shortest distances:", result)
 	}
+
 }
 
 func main() {

@@ -5,12 +5,12 @@ import (
 	"elp/models"
 	"fmt"
 	"math"
+	"net"
 	"sync"
 )
 
-// Dijkstra calculates shortest paths from a source node
-func Dijkstra(g *models.Graph, source int, results chan<- map[int]int, wg *sync.WaitGroup) {
-	defer wg.Done() // Signal when done
+func Dijkstra(g *models.Graph, source int, results chan<- map[int]map[int]int, wg *sync.WaitGroup) {
+	defer wg.Done() // n'envoie pas le signal que le thread a terminé tant que la fonctio n'est pas fini
 
 	distances := make(map[int]int)
 	for node := range g.AdjacencyList {
@@ -40,8 +40,36 @@ func Dijkstra(g *models.Graph, source int, results chan<- map[int]int, wg *sync.
 		}
 	}
 
-	// Send the results through the channel
-	results <- distances
+	// envoie le résultat du thread
+	results <- map[int]map[int]int{source: distances}
+}
+
+func NDisktra(graph *models.Graph) (resultat []string) {
+
+	results := make(chan map[int]map[int]int)
+	var wg sync.WaitGroup
+
+	// Launch Dijkstra for each node in the graph
+	for source := range graph.AdjacencyList {
+		wg.Add(1)
+		go Dijkstra(graph, source, results, &wg)
+	}
+
+	// Close the results channel when all routines are done
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	var resultStrings []string
+	// Collect and print the results
+	for result := range results {
+		for source, distances := range result {
+
+			resultStrings = append(resultStrings, fmt.Sprintf("Shortest distances from %d: %v", source, distances))
+		}
+	}
+	return resultStrings
 }
 
 func runDijkstraExample() {
@@ -58,28 +86,28 @@ func runDijkstraExample() {
 	graph.AddEdge(3, 4, 3)
 	graph.AddEdge(2, 4, 10)
 
-	source := 1
-
-	results := make(chan map[int]int)
-
-	var wg sync.WaitGroup
-
-	wg.Add(1)
-	go Dijkstra(graph, source, results, &wg)
-
-	// Récupère le résuktat
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
-
-	// Print the results
-	for result := range results {
-		fmt.Println("Shortest distances:", result)
-	}
+	NDisktra(graph)
 
 }
 
 func main() {
+	// run manuellement l'algorithme
 	runDijkstraExample()
+	//démare le serveur tcp pour utiliser Dkistra as a service
+	ln, err := net.Listen("tcp", ":12345")
+	if err != nil {
+		fmt.Println("Error starting server:", err)
+		return
+	}
+	defer ln.Close()
+
+	fmt.Println("Server is running on port 12345...")
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection:", err)
+			continue
+		}
+		go handleConnection(conn)
+	}
 }

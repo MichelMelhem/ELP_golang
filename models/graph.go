@@ -1,5 +1,10 @@
 package models
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
 // Création du type arrete avec un poids
 
 type Edge struct {
@@ -32,4 +37,38 @@ func (g *Graph) AddNode(node int) {
 	if _, exists := g.AdjacencyList[node]; !exists {
 		g.AdjacencyList[node] = []Edge{}
 	}
+}
+
+// converti un string en entier
+func atoi(s string) int {
+	var n int
+	fmt.Sscanf(s, "%d", &n)
+	return n
+}
+
+/*
+Example of json input for doc:
+    {
+		"0": [{"To": 1, "Weight": 2}, {"To": 2, "Weight": 4}],
+		"1": [{"To": 2, "Weight": 1}, {"To": 3, "Weight": 7}],
+		"2": [{"To": 3, "Weight": 3}],
+		"3": []
+	}
+*/
+
+func ParseJSONToGraph(jsonData string) (*Graph, error) {
+	var rawGraph map[string][]map[string]int
+	if err := json.Unmarshal([]byte(jsonData), &rawGraph); err != nil {
+		return nil, err
+	}
+
+	graph := NewGraph()
+	for node, edges := range rawGraph {
+		nodeID := atoi(node)
+		for _, edge := range edges {
+
+			graph.AddEdge(nodeID, edge["To"], edge["Weight"])
+		}
+	}
+	return graph, nil
 }

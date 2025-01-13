@@ -10,7 +10,7 @@ import (
 )
 
 func Dijkstra(g *models.Graph, source int, results chan<- map[int]map[int]int, wg *sync.WaitGroup) {
-	defer wg.Done() // n'envoie pas le signal que le thread a terminé tant que la fonctio n'est pas fini
+	defer wg.Done() // n'envoie pas le signal que le thread a terminé tant que la fonction n'est pas fini
 
 	distances := make(map[int]int)
 	for node := range g.AdjacencyList {
@@ -44,14 +44,14 @@ func Dijkstra(g *models.Graph, source int, results chan<- map[int]map[int]int, w
 	results <- map[int]map[int]int{source: distances}
 }
 
-func NDisktra(graph *models.Graph) (resultat []string) {
-
+// appelle Disktra sur tout les neud en créant à chaque fois un nouveau thread
+func NDisktra(graph *models.Graph) []map[string]interface{} {
 	results := make(chan map[int]map[int]int)
 	var wg sync.WaitGroup
 
 	// Launch Dijkstra for each node in the graph
 	for source := range graph.AdjacencyList {
-		wg.Add(1)
+		wg.Add(1) //on ajoute 1 au waitgroup dès qu'on lance un nouveau thread
 		go Dijkstra(graph, source, results, &wg)
 	}
 
@@ -61,15 +61,19 @@ func NDisktra(graph *models.Graph) (resultat []string) {
 		close(results)
 	}()
 
-	var resultStrings []string
-	// Collect and print the results
+	var resultJSON []map[string]interface{}
+	// Récupère les resultats
 	for result := range results {
 		for source, distances := range result {
-
-			resultStrings = append(resultStrings, fmt.Sprintf("Shortest distances from %d: %v", source, distances))
+			// Ajoute de la réponse au résultat
+			resultJSON = append(resultJSON, map[string]interface{}{
+				"source":    source,
+				"distances": distances,
+			})
 		}
 	}
-	return resultStrings
+	fmt.Print(resultJSON)
+	return resultJSON
 }
 
 func runDijkstraExample() {
@@ -92,7 +96,7 @@ func runDijkstraExample() {
 
 func main() {
 	// run manuellement l'algorithme
-	runDijkstraExample()
+	//runDijkstraExample()
 	//démare le serveur tcp pour utiliser Dkistra as a service
 	ln, err := net.Listen("tcp", ":12345")
 	if err != nil {

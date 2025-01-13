@@ -47,7 +47,7 @@ func atoi(s string) int {
 }
 
 /*
-Example of json input for doc:
+Exemple de json valide pour la fonction ParseJSONToGraph:
     {
 		"0": [{"To": 1, "Weight": 2}, {"To": 2, "Weight": 4}],
 		"1": [{"To": 2, "Weight": 1}, {"To": 3, "Weight": 7}],

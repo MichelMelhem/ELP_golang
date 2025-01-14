@@ -2,7 +2,6 @@ package models
 
 import "container/heap"
 
-// Item represents a node in the priority queue
 type Item struct {
 	Node     int
 	Priority int
@@ -34,8 +33,8 @@ func (pq *PriorityQueue) Pop() interface{} {
 	old := *pq
 	n := len(old)
 	item := old[n-1]
-	old[n-1] = Item{} // Avoid memory leak
-	item.Index = -1   // For safety
+	old[n-1] = Item{} // Évite les fuites d emémoire
+	item.Index = -1   // Par sécurité
 	*pq = old[0 : n-1]
 	return item
 }

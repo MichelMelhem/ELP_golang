@@ -49,13 +49,13 @@ func NDisktra(graph *models.Graph) []map[string]interface{} {
 	results := make(chan map[int]map[int]int)
 	var wg sync.WaitGroup
 
-	// Launch Dijkstra for each node in the graph
+	// Lance Dijkstra pour chaque noeuf dans le graph
 	for source := range graph.AdjacencyList {
 		wg.Add(1) //on ajoute 1 au waitgroup dès qu'on lance un nouveau thread
 		go Dijkstra(graph, source, results, &wg)
 	}
 
-	// Close the results channel when all routines are done
+	// Ferme le flot des résultats  quand toutes les go routines sont terminés
 	go func() {
 		wg.Wait()
 		close(results)

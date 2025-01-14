@@ -15,30 +15,30 @@ func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 
-	// Read input until newline
+	// Lis la données d'entrée
 	input, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Fprintln(conn, "Error reading input:", err)
+		fmt.Fprintln(conn, "Erreur lors de la lecture de l'entrée:", err)
 		return
 	}
 
-	// Trim whitespace
+	// Enlève les espaces qui sont éventuellement dans la data d'entrée
 	input = strings.TrimSpace(input)
 
-	// Parse the JSON into a graph
+	// Parse le json vers une structure de Graph
 	graph, err := models.ParseJSONToGraph(input)
 	if err != nil {
-		fmt.Fprintln(conn, "Error parsing JSON:", err)
+		fmt.Fprintln(conn, "Erreur :", err)
 		return
 	}
 
 	// Compute Dijkstra results
 	response, err := json.Marshal(NDisktra(graph))
 	if err != nil {
-		fmt.Fprintln(conn, "Error generating response JSON:", err)
+		fmt.Fprintln(conn, "Erreur lors de l'exportation du résultat au format Json :", err)
 		return
 	}
 
-	// Send the response back to the client
-	conn.Write(append(response, '\n')) // Ensure newline for client
+	//Envoie la réponse
+	conn.Write(append(response, '\n'))
 }

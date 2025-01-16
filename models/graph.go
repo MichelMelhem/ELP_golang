@@ -57,18 +57,21 @@ Exemple de json valide pour la fonction ParseJSONToGraph:
 */
 
 func ParseJSONToGraph(jsonData string) (*Graph, error) {
-	var rawGraph map[string][]map[string]int
+	var rawGraph struct {
+		AdjacencyList map[string][]map[string]int `json:"AdjacencyList"`
+	}
+
 	if err := json.Unmarshal([]byte(jsonData), &rawGraph); err != nil {
 		return nil, err
 	}
-
 	graph := NewGraph()
-	for node, edges := range rawGraph {
-		nodeID := atoi(node)
-		for _, edge := range edges {
 
+	for node, edges := range rawGraph.AdjacencyList {
+		nodeID := atoi(node) // Convert string node to integer
+		for _, edge := range edges {
 			graph.AddEdge(nodeID, edge["To"], edge["Weight"])
 		}
 	}
+
 	return graph, nil
 }
